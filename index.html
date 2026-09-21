@@ -1,0 +1,649 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Workout Tracker">
+  <title>Workout Tracker Pro</title>
+
+  <!-- Icônes iPhone & Favicon -->
+  <link rel="apple-touch-icon" href="icon.png">
+  <link rel="icon" type="image/png" href="icon.png">
+
+  <style>
+    :root {
+      --bg: #090d16;
+      --card-bg: rgba(26, 34, 53, 0.85);
+      --card-border: rgba(255, 255, 255, 0.08);
+      --accent-cyan: #06b6d4;
+      --accent-blue: #3b82f6;
+      --accent-purple: #8b5cf6;
+      --accent-rose: #f43f5e;
+      --accent-emerald: #10b981;
+      --text: #f8fafc;
+      --text-muted: #94a3b8;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, sans-serif;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      background-color: var(--bg);
+      background-image: radial-gradient(circle at 15% 15%, rgba(59, 130, 246, 0.12) 0%, transparent 40%),
+                        radial-gradient(circle at 85% 70%, rgba(139, 92, 246, 0.1) 0%, transparent 45%);
+      color: var(--text);
+      min-height: 100vh;
+      padding: max(16px, env(safe-area-inset-top)) 16px calc(100px + env(safe-area-inset-bottom)) 16px;
+    }
+
+    /* En-tête */
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+    .app-title {
+      font-size: 24px;
+      font-weight: 800;
+      background: linear-gradient(135deg, #38bdf8, #818cf8);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .today-pill {
+      background: rgba(56, 189, 248, 0.15);
+      color: #38bdf8;
+      border: 1px solid rgba(56, 189, 248, 0.3);
+      padding: 6px 14px;
+      border-radius: 20px;
+      font-size: 13px;
+      font-weight: 700;
+      text-transform: capitalize;
+    }
+
+    /* Cartes & Glassmorphism */
+    .card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border-radius: 20px;
+      padding: 18px;
+      margin-bottom: 16px;
+      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.4);
+    }
+
+    /* Sélecteur Semaine A / B */
+    .week-switch {
+      display: flex;
+      background: rgba(15, 23, 42, 0.7);
+      border-radius: 14px;
+      padding: 4px;
+      gap: 4px;
+      margin-bottom: 16px;
+      border: 1px solid var(--card-border);
+    }
+    .week-btn {
+      flex: 1;
+      padding: 10px;
+      border: none;
+      border-radius: 10px;
+      background: transparent;
+      color: var(--text-muted);
+      font-weight: 700;
+      font-size: 13px;
+      transition: all 0.25s ease;
+      cursor: pointer;
+    }
+    .week-btn.active {
+      background: linear-gradient(135deg, #0ea5e9, #3b82f6);
+      color: #fff;
+      box-shadow: 0 4px 12px rgba(14, 165, 233, 0.35);
+    }
+
+    /* Exercices */
+    .session-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 14px;
+    }
+    .session-title {
+      font-size: 19px;
+      font-weight: 700;
+    }
+    .badge {
+      display: inline-block;
+      padding: 4px 10px;
+      border-radius: 12px;
+      font-size: 11px;
+      font-weight: 700;
+      background: rgba(139, 92, 246, 0.2);
+      color: #c084fc;
+      border: 1px solid rgba(139, 92, 246, 0.3);
+    }
+    .exercise-row {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      padding: 12px;
+      background: rgba(15, 23, 42, 0.6);
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      border-radius: 14px;
+      margin-bottom: 10px;
+    }
+    .exercise-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 15px;
+      font-weight: 600;
+    }
+    .sprint-times {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-top: 4px;
+    }
+    .sprint-input {
+      width: 80px;
+      background: rgba(0,0,0,0.4);
+      border: 1px solid rgba(6, 182, 212, 0.4);
+      border-radius: 8px;
+      color: #38bdf8;
+      font-weight: 700;
+      padding: 6px 8px;
+      text-align: center;
+      font-size: 14px;
+    }
+
+    /* Boutons d'actions */
+    .btn {
+      width: 100%;
+      padding: 14px;
+      border-radius: 14px;
+      border: none;
+      font-size: 15px;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 8px;
+      transition: transform 0.15s, opacity 0.2s;
+    }
+    .btn:active { transform: scale(0.98); }
+    .btn-primary {
+      background: linear-gradient(135deg, #06b6d4, #3b82f6);
+      color: #fff;
+      box-shadow: 0 4px 14px rgba(6, 182, 212, 0.35);
+    }
+    .btn-secondary {
+      background: rgba(255, 255, 255, 0.07);
+      color: #cbd5e1;
+      border: 1px solid var(--card-border);
+    }
+    .btn-snap {
+      background: linear-gradient(135deg, #ff007f, #f43f5e);
+      color: #fff;
+      box-shadow: 0 4px 14px rgba(244, 63, 94, 0.35);
+      margin-top: 12px;
+    }
+
+    /* Chrono & Timers */
+    .timer-display {
+      font-size: 38px;
+      font-weight: 800;
+      font-variant-numeric: tabular-nums;
+      text-align: center;
+      margin: 10px 0;
+      letter-spacing: 1px;
+      background: linear-gradient(135deg, #38bdf8, #a855f7);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .timer-presets {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+    .preset-btn {
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid var(--card-border);
+      color: #cbd5e1;
+      padding: 8px 4px;
+      border-radius: 10px;
+      font-weight: 600;
+      font-size: 13px;
+      cursor: pointer;
+    }
+    .timer-controls {
+      display: flex;
+      gap: 10px;
+    }
+
+    /* Slider d'évaluation 1-10 */
+    .rating-box {
+      margin-top: 16px;
+      padding-top: 14px;
+      border-top: 1px solid var(--card-border);
+    }
+    input[type=range] {
+      width: 100%;
+      height: 7px;
+      border-radius: 5px;
+      accent-color: #38bdf8;
+      margin: 12px 0 6px 0;
+    }
+    .slider-labels {
+      display: flex;
+      justify-content: space-between;
+      font-size: 14px;
+      font-weight: 700;
+    }
+    .intensity-badge {
+      display: inline-block;
+      padding: 4px 10px;
+      border-radius: 8px;
+      font-size: 12px;
+      font-weight: 700;
+      margin-top: 6px;
+    }
+
+    /* Formulaire Profil */
+    input[type=number], input[type=text] {
+      width: 100%;
+      background: rgba(15, 23, 42, 0.7);
+      border: 1px solid var(--card-border);
+      color: #fff;
+      padding: 12px;
+      border-radius: 12px;
+      font-size: 15px;
+      margin-top: 6px;
+      margin-bottom: 14px;
+    }
+
+    /* Barre de navigation basse (PWA) */
+    .nav-bar {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: rgba(9, 13, 22, 0.92);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
+      padding: 10px 16px calc(10px + env(safe-area-inset-bottom)) 16px;
+      display: flex;
+      justify-content: space-around;
+      z-index: 100;
+    }
+    .nav-item {
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      font-size: 11px;
+      font-weight: 600;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 5px;
+      cursor: pointer;
+    }
+    .nav-item svg { width: 22px; height: 22px; stroke: currentColor; fill: none; stroke-width: 2; }
+    .nav-item.active { color: #38bdf8; }
+
+    .tab-content { display: none; }
+    .tab-content.active { display: block; animation: fadeIn 0.25s ease; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+  </style>
+</head>
+<body>
+
+  <!-- EN-TÊTE -->
+  <header>
+    <div>
+      <div style="font-size: 12px; color: var(--text-muted); font-weight: 600;">MON PLANNING</div>
+      <h1 class="app-title">Performance Hub</h1>
+    </div>
+    <div class="today-pill" id="today-badge">Aujourd'hui</div>
+  </header>
+
+  <!-- ONGLET 1 : SÉANCE DU JOUR -->
+  <main id="tab-workout" class="tab-content active">
+    <!-- Switcher Semaine A / B -->
+    <div class="week-switch">
+      <button class="week-btn active" id="btn-sem-a" onclick="switchWeek('A')">⚡ Semaine A (Jambes)</button>
+      <button class="week-btn" id="btn-sem-b" onclick="switchWeek('B')">🔥 Semaine B (Sprints)</button>
+    </div>
+
+    <!-- Carte Séance -->
+    <section class="card" id="session-card">
+      <div class="session-head">
+        <div>
+          <h2 class="session-title" id="session-title">Séance</h2>
+          <p id="session-sub" style="font-size: 13px; color: var(--text-muted); margin-top: 3px;"></p>
+        </div>
+        <span class="badge" id="session-badge">Focus</span>
+      </div>
+
+      <div id="exercise-list"></div>
+
+      <button class="btn btn-secondary" onclick="addCustomExercise()" style="margin-top: 6px;">
+        ＋ Ajouter un exercice
+      </button>
+
+      <!-- Évaluation de la séance -->
+      <div class="rating-box">
+        <label style="display: flex; align-items: center; gap: 10px; font-weight: 700; cursor: pointer;">
+          <input type="checkbox" id="check-done" onchange="toggleDone()" style="width: 20px; height: 20px; accent-color: #10b981;">
+          Valider la séance
+        </label>
+
+        <input type="range" id="intensity" min="1" max="10" value="7" oninput="updateIntensity(this.value)">
+        <div class="slider-labels">
+          <span>Ressenti : <strong id="rate-val">7</strong>/10</span>
+          <span class="intensity-badge" id="rate-badge">Modéré</span>
+        </div>
+
+        <button class="btn btn-snap" onclick="shareProof()">
+          📸 Partager ma story / preuve (Snap/Insta)
+        </button>
+      </div>
+    </section>
+
+    <!-- Carte Chrono & Timer Repos -->
+    <section class="card">
+      <div style="display:flex; justify-content:space-between; align-items:center;">
+        <h3 style="font-size: 16px; font-weight: 700;">⏱️ Timer Repos & Chronomètre</h3>
+        <span id="timer-mode" style="font-size: 12px; color: var(--text-muted);">Repos</span>
+      </div>
+
+      <div class="timer-display" id="timer-display">01:30</div>
+
+      <div class="timer-presets">
+        <button class="preset-btn" onclick="setTimerPreset(30)">+30s</button>
+        <button class="preset-btn" onclick="setTimerPreset(60)">+60s</button>
+        <button class="preset-btn" onclick="setTimerPreset(90)">+90s</button>
+        <button class="preset-btn" onclick="setTimerPreset(120)">+2m</button>
+      </div>
+
+      <div class="timer-controls">
+        <button class="btn btn-primary" id="timer-start-btn" onclick="toggleTimer()">Démarrer</button>
+        <button class="btn btn-secondary" onclick="resetTimer()">Reset</button>
+      </div>
+    </section>
+  </main>
+
+  <!-- ONGLET 2 : STATS & PROFIL -->
+  <main id="tab-profile" class="tab-content">
+    <section class="card">
+      <h3 style="font-size: 17px; margin-bottom: 12px;">📊 Mesures & Métriques Santé</h3>
+      <label style="font-size: 13px; color: var(--text-muted);">Poids corporel (kg)</label>
+      <input type="number" id="user-weight" placeholder="Ex: 75" onchange="saveProfile()">
+
+      <label style="font-size: 13px; color: var(--text-muted);">Taille (cm)</label>
+      <input type="number" id="user-height" placeholder="Ex: 178" onchange="saveProfile()">
+
+      <button class="btn btn-primary" onclick="calculateMetrics()">Calculer mes métriques</button>
+
+      <div id="metrics-result" style="margin-top: 14px; font-size: 14px; line-height: 1.8;"></div>
+    </section>
+
+    <section class="card">
+      <h3 style="font-size: 17px; margin-bottom: 12px;">🎯 Mes Objectifs</h3>
+      <input type="text" id="target-goal" placeholder="Ex: Sprint 60m sous 7.5s, 80kg au bench...">
+      <button class="btn btn-secondary" onclick="saveGoal()">Ajouter l'objectif</button>
+      <ul id="goals-list" style="margin-top: 14px; padding-left: 20px; font-size: 14px; line-height: 1.8;"></ul>
+    </section>
+  </main>
+
+  <!-- BARRE DE NAVIGATION (iOS PWA) -->
+  <nav class="nav-bar">
+    <button class="nav-item active" onclick="switchTab('workout', this)">
+      <svg viewBox="0 0 24 24"><path d="M6 4v16M18 4v16M2 8h4M18 8h4M2 16h4M18 16h4M6 12h12"/></svg>
+      Séance
+    </button>
+    <button class="nav-item" onclick="switchTab('profile', this)">
+      <svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+      Profil
+    </button>
+  </nav>
+
+  <script>
+    let currentWeek = 'A';
+    const dayNames = ["Dimanche", "Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi"];
+    const now = new Date();
+    const todayIndex = now.getDay();
+
+    const program = {
+      1: { title: "Haut du Corps A", badge: "Poussée / Pecs", sub: "Développé incliné, Dips, Rowing, Deltoïdes", list: ["Développé incliné haltères (4x8-10)", "Dips ou Développé couché (3x10)", "Rowing buste appuyé (4x10)", "Élévations latérales haltères (4x15)", "Triceps poulie haute (3x12)"] },
+      2: { 
+        A: { title: "Bas du Corps (Lourd)", badge: "Jambes & Cuisses", sub: "Préservation du dos pour le stow", list: ["Presse à cuisses ou Hack squat (4x10)", "Leg curl ischios (4x12)", "Hip thrust fessiers (3x10)", "Mollets debout (4x15)"] },
+        B: { isSprint: true, title: "Sprints & Vitesse", badge: "Piste & Explosivité", sub: "Chrono et puissance max", list: ["Échauffement articulaire & gammes (15 min)", "Sprint 1 (50m)", "Sprint 2 (50m)", "Sprint 3 (50m)", "Sprint 4 (60m)", "Sprint 5 (60m)"] }
+      },
+      3: { title: "Natation & Récup", badge: "Décompression", sub: "Décharge complète des lombaires", list: ["35-45 min Nage libre / dos", "Étirements légers en fin d'eau"] },
+      4: { title: "Repos Complet", badge: "Recharge", sub: "Nutrition et sommeil", list: ["Zéro sport - Bonne hydratation"] },
+      5: { title: "Haut du Corps B", badge: "Tirage / Dos", sub: "Tractions, Tirage, Épaules & Biceps", list: ["Tractions ou Tirage poitrine (4x8-10)", "Rowing unilatéral haltère (3x10)", "Développé militaire épaules (3x10)", "Curl biceps marteau (4x12)", "Face-pull à la poulie (3x15)"] },
+      6: { title: "Core & Posture", badge: "Abdos / Lombaires", sub: "Protection de la colonne", list: ["Banc à lombaires à 45° (3x12)", "Relevés de jambes suspendu (3x15)", "Crunch à la poulie (3x15)", "Gainage ventral dynamique (3x1min)"] },
+      0: { title: "Repos Complet", badge: "Reset", sub: "Préparation pour la semaine", list: ["Repos total"] }
+    };
+
+    function loadSession() {
+      document.getElementById('today-badge').innerText = dayNames[todayIndex];
+      let p = program[todayIndex];
+      if (todayIndex === 2) p = p[currentWeek];
+
+      document.getElementById('session-title').innerText = p.title;
+      document.getElementById('session-badge').innerText = p.badge;
+      document.getElementById('session-sub').innerText = p.sub;
+
+      const container = document.getElementById('exercise-list');
+      container.innerHTML = '';
+
+      p.list.forEach((ex, idx) => {
+        const key = `sprint_time_${idx}`;
+        const savedTime = localStorage.getItem(key) || '';
+        
+        const sprintField = p.isSprint && idx > 0 ? `
+          <div class="sprint-times">
+            <span style="font-size:12px; color:var(--text-muted);">Chrono :</span>
+            <input class="sprint-input" type="number" step="0.01" placeholder="sec" value="${savedTime}" onchange="localStorage.setItem('${key}', this.value)">
+            <span style="font-size:12px; color:#38bdf8; font-weight:700;">sec</span>
+          </div>` : '';
+
+        container.innerHTML += `
+          <div class="exercise-row">
+            <div class="exercise-header">
+              <span>${ex}</span>
+              <button onclick="this.closest('.exercise-row').remove()" style="background:none; border:none; color:#f43f5e; font-size:18px; cursor:pointer;">✕</button>
+            </div>
+            ${sprintField}
+          </div>`;
+      });
+    }
+
+    function switchWeek(w) {
+      currentWeek = w;
+      document.getElementById('btn-sem-a').classList.toggle('active', w === 'A');
+      document.getElementById('btn-sem-b').classList.toggle('active', w === 'B');
+      loadSession();
+    }
+
+    function addCustomExercise() {
+      const name = prompt("Exercice à ajouter (ex: 4x10 Développé) :");
+      if (name) {
+        document.getElementById('exercise-list').innerHTML += `
+          <div class="exercise-row">
+            <div class="exercise-header">
+              <span>${name}</span>
+              <button onclick="this.closest('.exercise-row').remove()" style="background:none; border:none; color:#f43f5e; font-size:18px;">✕</button>
+            </div>
+          </div>`;
+      }
+    }
+
+    function updateIntensity(val) {
+      document.getElementById('rate-val').innerText = val;
+      const badge = document.getElementById('rate-badge');
+      if (val <= 4) {
+        badge.innerText = "Récupération / Facile";
+        badge.style.background = "rgba(16, 185, 129, 0.2)";
+        badge.style.color = "#34d399";
+      } else if (val <= 7) {
+        badge.innerText = "Bonne séance / Modéré";
+        badge.style.background = "rgba(245, 158, 11, 0.2)";
+        badge.style.color = "#fbbf24";
+      } else {
+        badge.innerText = "Hardcore / Destruction";
+        badge.style.background = "rgba(244, 63, 94, 0.2)";
+        badge.style.color = "#fb7185";
+      }
+    }
+
+    function toggleDone() {
+      const done = document.getElementById('check-done').checked;
+      const card = document.getElementById('session-card');
+      card.style.borderColor = done ? "rgba(16, 185, 129, 0.8)" : "var(--card-border)";
+      card.style.boxShadow = done ? "0 0 25px rgba(16, 185, 129, 0.2)" : "none";
+    }
+
+    function shareProof() {
+      const note = document.getElementById('intensity').value;
+      const p = todayIndex === 2 ? program[2][currentWeek].title : program[todayIndex].title;
+      const msg = `⚡ Workout validé ! ${p} terminé avec un ressenti de ${note}/10 💪 #NoExcuse`;
+      if (navigator.share) {
+        navigator.share({ title: 'Workout Terminé !', text: msg }).catch(() => {});
+      } else {
+        navigator.clipboard.writeText(msg);
+        alert("Texte copié ! Ouvre Snap ou Insta et colle la preuve dans ta story !");
+      }
+    }
+
+    /* CHRONO / TIMER */
+    let timerDuration = 90;
+    let timerRemaining = 90;
+    let timerInterval = null;
+    let isRunning = false;
+
+    function formatTime(s) {
+      const m = Math.floor(s / 60).toString().padStart(2, '0');
+      const sec = (s % 60).toString().padStart(2, '0');
+      return `${m}:${sec}`;
+    }
+
+    function updateTimerUI() {
+      document.getElementById('timer-display').innerText = formatTime(timerRemaining);
+    }
+
+    function setTimerPreset(sec) {
+      clearInterval(timerInterval);
+      isRunning = false;
+      document.getElementById('timer-start-btn').innerText = "Démarrer";
+      timerDuration = sec;
+      timerRemaining = sec;
+      updateTimerUI();
+    }
+
+    function toggleTimer() {
+      const btn = document.getElementById('timer-start-btn');
+      if (isRunning) {
+        clearInterval(timerInterval);
+        isRunning = false;
+        btn.innerText = "Reprendre";
+      } else {
+        isRunning = true;
+        btn.innerText = "Pause";
+        timerInterval = setInterval(() => {
+          if (timerRemaining > 0) {
+            timerRemaining--;
+            updateTimerUI();
+          } else {
+            clearInterval(timerInterval);
+            isRunning = false;
+            btn.innerText = "Démarrer";
+            if (navigator.vibrate) navigator.vibrate([200, 100, 200]);
+            alert("⏰ Fin du temps de repos ! Au boulot !");
+          }
+        }, 1000);
+      }
+    }
+
+    function resetTimer() {
+      clearInterval(timerInterval);
+      isRunning = false;
+      timerRemaining = timerDuration;
+      document.getElementById('timer-start-btn').innerText = "Démarrer";
+      updateTimerUI();
+    }
+
+    /* PROFIL & MÉTRIQUES */
+    function calculateMetrics() {
+      const w = parseFloat(document.getElementById('user-weight').value);
+      const h = parseFloat(document.getElementById('user-height').value) / 100;
+      if (!w || !h) return alert("Renseigne le poids et la taille !");
+
+      const imc = (w / (h * h)).toFixed(1);
+      const bmr = Math.round(10 * w + 6.25 * (h * 100) - 5 * 25 + 5);
+      const tdee = Math.round(bmr * 1.55);
+
+      document.getElementById('metrics-result').innerHTML = `
+        🔹 <strong>IMC :</strong> ${imc}<br>
+        🔹 <strong>Métabolisme de base (repos) :</strong> ~${bmr} kcal/jour<br>
+        🔹 <strong>Dépense estimée avec travail debout :</strong> ~${tdee} kcal/jour
+      `;
+    }
+
+    function saveProfile() {
+      localStorage.setItem('user_weight', document.getElementById('user-weight').value);
+      localStorage.setItem('user_height', document.getElementById('user-height').value);
+    }
+
+    function saveGoal() {
+      const input = document.getElementById('target-goal');
+      if (!input.value) return;
+      let goals = JSON.parse(localStorage.getItem('workout_goals') || '[]');
+      goals.push(input.value);
+      localStorage.setItem('workout_goals', JSON.stringify(goals));
+      input.value = '';
+      loadGoals();
+    }
+
+    function loadGoals() {
+      const list = document.getElementById('goals-list');
+      const goals = JSON.parse(localStorage.getItem('workout_goals') || '[]');
+      list.innerHTML = goals.map((g, i) => `<li>${g} <button onclick="deleteGoal(${i})" style="background:none; border:none; color:#f43f5e; cursor:pointer; font-size:12px;">✕</button></li>`).join('');
+    }
+
+    function deleteGoal(i) {
+      let goals = JSON.parse(localStorage.getItem('workout_goals') || '[]');
+      goals.splice(i, 1);
+      localStorage.setItem('workout_goals', JSON.stringify(goals));
+      loadGoals();
+    }
+
+    function switchTab(tabId, el) {
+      document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
+      document.getElementById('tab-' + tabId).classList.add('active');
+      el.classList.add('active');
+    }
+
+    // Initialisation
+    updateIntensity(7);
+    loadSession();
+    loadGoals();
+    updateTimerUI();
+    if (localStorage.getItem('user_weight')) document.getElementById('user-weight').value = localStorage.getItem('user_weight');
+    if (localStorage.getItem('user_height')) document.getElementById('user-height').value = localStorage.getItem('user_height');
+  </script>
+</body>
+</html>
